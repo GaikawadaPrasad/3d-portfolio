@@ -324,6 +324,9 @@ export const HUD: React.FC<HUDProps> = ({
                     <span className="text-sky-400 font-bold">{distanceCm} cm</span>
                   </div>
                   <input
+                    id="ultrasonic_distance"
+                    name="ultrasonic_distance"
+                    aria-label="Ultrasonic Distance Slider"
                     type="range"
                     min="5"
                     max="200"
