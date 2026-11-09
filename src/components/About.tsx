@@ -2,6 +2,7 @@ import React from 'react';
 import { Cpu, Code, Layers, Wifi, Shield, ArrowUpRight, CheckCircle2 } from 'lucide-react';
 import { sound } from '../utils/sound';
 import { PORTFOLIO_DATA } from '../data/portfolioData';
+import { AboutCore3D } from './AboutCore3D';
 
 export const About: React.FC = () => {
   return (
@@ -50,6 +51,9 @@ export const About: React.FC = () => {
               </div>
             </div>
           </div>
+
+          {/* Interactive 3D Xtensa Dual-Core Silicon Hologram */}
+          <AboutCore3D />
 
           {/* Quick Hardware Spec Card */}
           <div className="p-5 rounded-2xl bg-neutral-900/70 border border-white/10 font-mono text-xs space-y-3">

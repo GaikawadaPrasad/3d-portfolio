@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Cpu, Activity, Radio, AlertTriangle, ShieldAlert, Sparkles, Terminal, Volume2 } from 'lucide-react';
 import { PORTFOLIO_DATA } from '../data/portfolioData';
 import { sound } from '../utils/sound';
+import { IoTWorkbench3D } from './IoTWorkbench3D';
 
 export const IoTLab: React.FC = () => {
   const [activeSensor, setActiveSensor] = useState<string>('pir');
@@ -143,6 +144,14 @@ export const IoTLab: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Interactive Hardware Control Panel (7 cols) */}
         <div className="lg:col-span-7 flex flex-col gap-6">
+          {/* Interactive 3D Breadboard Circuit Simulation */}
+          <IoTWorkbench3D
+            motionTriggered={motionTriggered}
+            distanceCm={distanceCm}
+            luxValue={luxValue}
+            onTriggerMotion={handleTriggerMotion}
+          />
+
           {/* Sensor Selectors */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
             {PORTFOLIO_DATA.iotSensors.map((sensor) => (

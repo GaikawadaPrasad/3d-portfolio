@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { sound } from '../utils/sound';
-import { Eye, RotateCcw, Cpu, Terminal, Compass, Zap, ShieldCheck } from 'lucide-react';
+import { Eye, RotateCcw, Cpu, Terminal, Compass, Zap, ShieldCheck, Layers, Sparkles } from 'lucide-react';
 
 interface ThreeSceneProps {
   onSelectNode?: (nodeName: string) => void;
@@ -12,6 +12,9 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
   const [activeView, setActiveView] = useState<'orbit' | 'esp32' | 'console' | 'skills'>('orbit');
   const [hoveredObject, setHoveredObject] = useState<string | null>(null);
   const [autoRotate, setAutoRotate] = useState<boolean>(true);
+  const [wireframeMode, setWireframeMode] = useState<boolean>(false);
+  const [themeMode, setThemeMode] = useState<'emerald' | 'amber' | 'slate'>('emerald');
+  const [explodedView, setExplodedView] = useState<boolean>(false);
   const [fps, setFps] = useState<number>(60);
 
   // References for mutable animation state
@@ -19,18 +22,16 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
   const autoRotateRef = useRef<boolean>(true);
   const isInteractingRef = useRef<boolean>(false);
   const onSelectNodeRef = useRef(onSelectNode);
+  const wireframeModeRef = useRef<boolean>(false);
+  const themeModeRef = useRef<'emerald' | 'amber' | 'slate'>('emerald');
+  const explodedViewRef = useRef<boolean>(false);
 
-  useEffect(() => {
-    activeViewRef.current = activeView;
-  }, [activeView]);
-
-  useEffect(() => {
-    autoRotateRef.current = autoRotate;
-  }, [autoRotate]);
-
-  useEffect(() => {
-    onSelectNodeRef.current = onSelectNode;
-  }, [onSelectNode]);
+  useEffect(() => { activeViewRef.current = activeView; }, [activeView]);
+  useEffect(() => { autoRotateRef.current = autoRotate; }, [autoRotate]);
+  useEffect(() => { onSelectNodeRef.current = onSelectNode; }, [onSelectNode]);
+  useEffect(() => { wireframeModeRef.current = wireframeMode; }, [wireframeMode]);
+  useEffect(() => { themeModeRef.current = themeMode; }, [themeMode]);
+  useEffect(() => { explodedViewRef.current = explodedView; }, [explodedView]);
 
   // Three.js instances
   const sceneRef = useRef<THREE.Scene | null>(null);
@@ -44,6 +45,9 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
   const screenTextureRef = useRef<THREE.CanvasTexture | null>(null);
   const frameIdRef = useRef<number>(0);
   const rxLedRef = useRef<THREE.PointLight | null>(null);
+  const shockwaveRef = useRef<THREE.Mesh | null>(null);
+  const shockwaveProgress = useRef<number>(1.0);
+  const rfShieldMeshRef = useRef<THREE.Mesh | null>(null);
 
   // Setup Procedural Screen Canvas Texture
   const updateScreenTexture = useCallback((time: number) => {
@@ -65,7 +69,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     ctx.fillText(`STATUS: ONLINE  |  FREQ: 240MHz  |  T: ${time.toFixed(1)}s`, 16, 52);
 
     // Draw Oscilloscope waveform
-    ctx.strokeStyle = '#34d399';
+    ctx.strokeStyle = themeModeRef.current === 'amber' ? '#f59e0b' : themeModeRef.current === 'slate' ? '#38bdf8' : '#34d399';
     ctx.lineWidth = 2;
     ctx.beginPath();
     for (let x = 0; x < 480; x += 4) {
@@ -119,7 +123,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     container.appendChild(renderer.domElement);
 
     // LIGHTS
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.45);
     scene.add(ambientLight);
 
     const mainLight = new THREE.DirectionalLight(0xe2e8f0, 1.8);
@@ -129,21 +133,35 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     mainLight.shadow.mapSize.height = 1024;
     scene.add(mainLight);
 
-    // Terminal Emerald backlight
+    // Dynamic Themed lights
     const greenGlow = new THREE.PointLight(0x10b981, 2.5, 15);
     greenGlow.position.set(-2, 2.5, -1);
     scene.add(greenGlow);
 
-    // Hardware Amber backlight
     const amberGlow = new THREE.PointLight(0xf59e0b, 2.0, 12);
     amberGlow.position.set(3, 1.5, -2);
     scene.add(amberGlow);
 
-    // RX/TX Blinking light for ESP32
     const rxLed = new THREE.PointLight(0x10b981, 1.2, 3);
     rxLed.position.set(0.6, 0.7, 0.8);
     scene.add(rxLed);
     rxLedRef.current = rxLed;
+
+    // ----------------------------------------------------
+    // SHOCKWAVE EXPANSION RING
+    // ----------------------------------------------------
+    const shockwaveGeo = new THREE.RingGeometry(0.1, 0.25, 32);
+    const shockwaveMat = new THREE.MeshBasicMaterial({
+      color: 0x10b981,
+      side: THREE.DoubleSide,
+      transparent: true,
+      opacity: 0,
+    });
+    const shockwaveMesh = new THREE.Mesh(shockwaveGeo, shockwaveMat);
+    shockwaveMesh.rotation.x = -Math.PI / 2;
+    shockwaveMesh.position.y = 0.05;
+    scene.add(shockwaveMesh);
+    shockwaveRef.current = shockwaveMesh;
 
     // ----------------------------------------------------
     // PROCEDURAL 3D ASSETS
@@ -161,7 +179,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     platform.receiveShadow = true;
     scene.add(platform);
 
-    // Platform ring border (Matrix emerald line)
     const ringGeo = new THREE.TorusGeometry(5.22, 0.03, 16, 64);
     const ringMat = new THREE.MeshBasicMaterial({ color: 0x10b981 });
     const ring = new THREE.Mesh(ringGeo, ringMat);
@@ -169,7 +186,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     ring.position.y = 0.01;
     scene.add(ring);
 
-    // Hexagonal circuit grid on platform
     const gridHelper = new THREE.GridHelper(10, 24, 0x10b981, 0x1f2937);
     gridHelper.position.y = 0.02;
     scene.add(gridHelper);
@@ -178,7 +194,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     const consoleGroup = new THREE.Group();
     consoleGroup.name = 'Console Terminal';
 
-    // Stand
     const standGeo = new THREE.CylinderGeometry(0.15, 0.3, 1.2, 16);
     const metalMat = new THREE.MeshStandardMaterial({ color: 0x1f242d, metalness: 0.9, roughness: 0.2 });
     const stand = new THREE.Mesh(standGeo, metalMat);
@@ -186,7 +201,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     stand.castShadow = true;
     consoleGroup.add(stand);
 
-    // Monitor frame
     const frameGeo = new THREE.BoxGeometry(2.4, 1.5, 0.12);
     const frame = new THREE.Mesh(frameGeo, metalMat);
     frame.position.set(-0.8, 1.6, -0.6);
@@ -194,7 +208,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     frame.castShadow = true;
     consoleGroup.add(frame);
 
-    // Monitor display screen with canvas texture
     const screenCanvas = document.createElement('canvas');
     screenCanvas.width = 512;
     screenCanvas.height = 320;
@@ -219,7 +232,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     esp32Group.position.set(1.4, 0.25, 0.5);
     esp32Group.rotation.y = -0.3;
 
-    // PCB Board (Dark matte green / obsidian)
     const pcbGeo = new THREE.BoxGeometry(1.6, 0.08, 2.2);
     const pcbMat = new THREE.MeshStandardMaterial({
       color: 0x092614,
@@ -231,7 +243,14 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     pcb.receiveShadow = true;
     esp32Group.add(pcb);
 
-    // Metal RF Shield (ESP-WROOM-32)
+    // Silicon Chip Die underneath
+    const dieGeo = new THREE.BoxGeometry(0.5, 0.04, 0.5);
+    const dieMat = new THREE.MeshStandardMaterial({ color: 0x1f2937, metalness: 0.95, roughness: 0.1 });
+    const die = new THREE.Mesh(dieGeo, dieMat);
+    die.position.set(0, 0.06, -0.25);
+    esp32Group.add(die);
+
+    // Metal RF Shield
     const shieldGeo = new THREE.BoxGeometry(1.0, 0.12, 1.1);
     const shieldMat = new THREE.MeshStandardMaterial({
       color: 0xcccccc,
@@ -241,9 +260,10 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     const shield = new THREE.Mesh(shieldGeo, shieldMat);
     shield.position.set(0, 0.08, -0.25);
     shield.castShadow = true;
+    shield.name = 'ESP32 RF Shield (Click to Explode View)';
     esp32Group.add(shield);
+    rfShieldMeshRef.current = shield;
 
-    // Wi-Fi Copper Antenna trace
     const antennaGeo = new THREE.BoxGeometry(0.9, 0.02, 0.25);
     const copperMat = new THREE.MeshStandardMaterial({
       color: 0xd97706,
@@ -254,7 +274,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     antenna.position.set(0, 0.05, -0.92);
     esp32Group.add(antenna);
 
-    // GPIO Gold Pin Headers (left and right)
     for (let side = -1; side <= 1; side += 2) {
       for (let i = -8; i <= 8; i++) {
         const pinGeo = new THREE.BoxGeometry(0.06, 0.22, 0.06);
@@ -264,13 +283,11 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
       }
     }
 
-    // Micro USB / Type-C port
     const usbGeo = new THREE.BoxGeometry(0.42, 0.14, 0.35);
     const usb = new THREE.Mesh(usbGeo, metalMat);
     usb.position.set(0, 0.08, 1.05);
     esp32Group.add(usb);
 
-    // LEDs (Power Amber, TX/RX Emerald)
     const pwrLedGeo = new THREE.BoxGeometry(0.08, 0.04, 0.08);
     const pwrLedMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
     const pwrLed = new THREE.Mesh(pwrLedGeo, pwrLedMat);
@@ -301,7 +318,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
         color: cfg.color,
         roughness: 0.2,
         metalness: 0.8,
-        wireframe: false,
       });
       const mesh = new THREE.Mesh(cfg.geo, mat);
       mesh.name = cfg.name;
@@ -371,6 +387,14 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
 
     const handleClick = () => {
       if (!cameraRef.current) return;
+
+      // Trigger 3D Shockwave pulse at center
+      shockwaveProgress.current = 0;
+      if (shockwaveRef.current) {
+        shockwaveRef.current.scale.set(1, 1, 1);
+        (shockwaveRef.current.material as THREE.MeshBasicMaterial).opacity = 0.8;
+      }
+
       raycaster.setFromCamera(mouse, cameraRef.current);
       const intersects = raycaster.intersectObjects(interactableObjects.current, true);
 
@@ -384,8 +408,9 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
         }
 
         // Camera focus logic
-        if (objName.includes('ESP32')) {
+        if (objName.includes('ESP32') || objName.includes('RF Shield')) {
           setActiveView('esp32');
+          setExplodedView(!explodedViewRef.current);
           targetCameraPos.current.set(1.4, 1.6, 2.3);
           targetLookAt.current.set(1.4, 0.3, 0.5);
         } else if (objName.includes('Terminal') || objName.includes('Console')) {
@@ -401,9 +426,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     container.addEventListener('mousemove', handleMouseMove);
     container.addEventListener('click', handleClick);
 
-    // ----------------------------------------------------
-    // RESIZE OBSERVER
-    // ----------------------------------------------------
+    // Resize Observer
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const { width: newW, height: newH } = entry.contentRect;
@@ -429,7 +452,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
       const delta = (now - lastTime) / 1000;
       lastTime = now;
 
-      // FPS Calculation
       frameCount++;
       if (now - lastFpsUpdate >= 1000) {
         setFps(Math.round((frameCount * 1000) / (now - lastFpsUpdate)));
@@ -439,12 +461,26 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
 
       const time = timeMs / 1000;
 
-      // Update interactive terminal texture
+      // Update screen texture
       updateScreenTexture(time);
 
-      // Blinking RX/TX status LEDs
+      // Blinking RX/TX LEDs
       if (rxLedRef.current) {
         rxLedRef.current.intensity = Math.sin(time * 12) > 0.3 ? 1.6 : 0.2;
+      }
+
+      // Shockwave ring animation
+      if (shockwaveProgress.current < 1.0 && shockwaveRef.current) {
+        shockwaveProgress.current += delta * 1.5;
+        const scale = 1 + shockwaveProgress.current * 18;
+        shockwaveRef.current.scale.set(scale, scale, 1);
+        (shockwaveRef.current.material as THREE.MeshBasicMaterial).opacity = Math.max(0, 0.8 * (1 - shockwaveProgress.current));
+      }
+
+      // Exploded View transition for ESP32 shield
+      if (rfShieldMeshRef.current) {
+        const targetY = explodedViewRef.current ? 0.75 : 0.08;
+        rfShieldMeshRef.current.position.y += (targetY - rfShieldMeshRef.current.position.y) * 0.1;
       }
 
       // Parallax easing
@@ -461,12 +497,19 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
         node.mesh.rotation.y += delta * 1.5;
       });
 
-      // Gently rotate particle cosmos
       particleField.rotation.y = time * 0.02;
+
+      // Apply Wireframe Mode
+      scene.traverse((obj) => {
+        if (obj instanceof THREE.Mesh && obj !== screen && obj !== shockwaveMesh) {
+          if (obj.material && !Array.isArray(obj.material)) {
+            obj.material.wireframe = wireframeModeRef.current;
+          }
+        }
+      });
 
       // Camera transitions
       if (cameraRef.current) {
-        // Auto-rotation around current target when in orbit mode
         if (activeViewRef.current === 'orbit' && autoRotateRef.current && !isInteractingRef.current) {
           const orbitAngle = time * 0.25;
           targetCameraPos.current.x = Math.sin(orbitAngle) * 8.5 + mouseParallax.x * 2;
@@ -478,7 +521,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
         currentLookAt.current.lerp(targetLookAt.current, 0.05);
         cameraRef.current.lookAt(currentLookAt.current);
 
-        // Raycasting for Hover detection
         raycaster.setFromCamera(mouse, cameraRef.current);
         const intersects = raycaster.intersectObjects(interactableObjects.current, true);
         if (intersects.length > 0) {
@@ -497,14 +539,12 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
 
     frameIdRef.current = requestAnimationFrame(animate);
 
-    // CLEANUP
     return () => {
       cancelAnimationFrame(frameIdRef.current);
       resizeObserver.disconnect();
       container.removeEventListener('mousemove', handleMouseMove);
       container.removeEventListener('click', handleClick);
 
-      // Dispose Three.js objects
       scene.traverse((obj) => {
         if (obj instanceof THREE.Mesh) {
           obj.geometry?.dispose();
@@ -524,7 +564,6 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
     };
   }, [updateScreenTexture]);
 
-  // View Preset Handler
   const handleViewChange = (view: 'orbit' | 'esp32' | 'console' | 'skills') => {
     sound.playSwitch();
     setActiveView(view);
@@ -546,8 +585,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
   };
 
   return (
-    <div className="relative w-full h-[520px] md:h-[620px] lg:h-[700px] overflow-hidden rounded-2xl border border-white/10 bg-[#08090b] shadow-2xl">
-      {/* 3D WebGL Canvas Mount Container */}
+    <div className="relative w-full h-[540px] md:h-[640px] lg:h-[720px] overflow-hidden rounded-2xl border border-white/10 bg-[#08090b] shadow-2xl">
       <div
         ref={mountRef}
         className="w-full h-full"
@@ -570,9 +608,46 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
         </div>
       </div>
 
-      {/* Top Right: Hover Object Reticle */}
+      {/* Top Right: Shader & Visual Mode Toggles */}
+      <div className="absolute top-4 right-4 z-10 flex items-center gap-2 font-mono text-xs pointer-events-auto">
+        <button
+          type="button"
+          onClick={() => {
+            sound.playClick();
+            setWireframeMode(!wireframeMode);
+          }}
+          className={`px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 ${
+            wireframeMode
+              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 font-semibold'
+              : 'bg-black/60 text-neutral-400 border-white/10 hover:text-white'
+          }`}
+          title="Toggle 3D Wireframe Shader"
+        >
+          <Layers className="w-3.5 h-3.5" />
+          <span>Wireframe</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            sound.playClick();
+            setExplodedView(!explodedView);
+          }}
+          className={`px-3 py-1.5 rounded-lg border transition-all flex items-center gap-1.5 ${
+            explodedView
+              ? 'bg-amber-500/20 text-amber-300 border-amber-500/50 font-semibold'
+              : 'bg-black/60 text-neutral-400 border-white/10 hover:text-white'
+          }`}
+          title="Toggle Exploded MCU View"
+        >
+          <Cpu className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Exploded View</span>
+        </button>
+      </div>
+
+      {/* Hover Object Reticle */}
       {hoveredObject && (
-        <div className="absolute top-4 right-4 z-10 font-mono text-xs animate-fade-in pointer-events-none">
+        <div className="absolute top-16 right-4 z-10 font-mono text-xs animate-fade-in pointer-events-none">
           <div className="px-3.5 py-2 rounded-lg bg-black/80 backdrop-blur-md border border-emerald-500/40 text-emerald-400 shadow-lg shadow-emerald-500/10 flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-400 animate-pulse" />
             <span>INSPECTING: {hoveredObject}</span>
@@ -669,7 +744,7 @@ export const ThreeScene: React.FC<ThreeSceneProps> = ({ onSelectNode }) => {
 
       {/* Interactive Helper Hint */}
       <div className="absolute bottom-16 right-4 hidden lg:flex items-center gap-2 font-mono text-[11px] text-neutral-500 bg-black/40 px-3 py-1 rounded-md border border-white/5 pointer-events-none">
-        <span>[DRAG TO ROTATE  |  CLICK OBJECTS TO FOCUS]</span>
+        <span>[CLICK CANVAS FOR SHOCKWAVE PULSE | CLICK OBJECTS TO FOCUS]</span>
       </div>
     </div>
   );

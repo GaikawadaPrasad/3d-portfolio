@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Cpu, Code, Database, Wrench, Search, Zap } from 'lucide-react';
 import { PORTFOLIO_DATA } from '../data/portfolioData';
 import { sound } from '../utils/sound';
+import { SkillsSphere3D } from './SkillsSphere3D';
 
 export const Skills: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'all' | 'frontend' | 'backend' | 'hardware' | 'databases' | 'tools'>('all');
@@ -73,6 +74,9 @@ export const Skills: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* 3D Interactive Skill Constellation Globe */}
+      <SkillsSphere3D onSelectSkill={(skillName) => setSearchQuery(skillName)} />
 
       {/* Domain Filter Pills */}
       <div className="flex flex-wrap gap-2 mb-8 font-mono text-xs">

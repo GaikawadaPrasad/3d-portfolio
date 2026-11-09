@@ -5,6 +5,7 @@ import { Send, CheckCircle2, AlertCircle, Mail, MapPin, FileText, Sparkles } fro
 import { PORTFOLIO_DATA } from '../data/portfolioData';
 import { sound } from '../utils/sound';
 import { GithubIcon, LinkedinIcon, InstagramIcon } from './Icons';
+import { ContactBeacon3D } from './ContactBeacon3D';
 
 export const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -85,6 +86,9 @@ export const Contact: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left Column: Direct Coordinates & Social Signals (5 cols) */}
         <div className="lg:col-span-5 flex flex-col gap-6">
+          {/* 3D Interactive Transmission Radar Dish */}
+          <ContactBeacon3D isTransmitting={status === 'transmitting'} />
+
           <div className="p-6 sm:p-7 rounded-2xl bg-neutral-900/60 border border-white/10 backdrop-blur-sm space-y-6">
             <h3 className="text-xl font-bold text-white tracking-tight">
               Direct Coordinates
