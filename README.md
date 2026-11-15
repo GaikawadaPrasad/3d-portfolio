@@ -1,63 +1,112 @@
-# 3D Interactive Portfolio — Prasad Gaikwad
-> Full-Stack & Hardware / IoT Developer Portfolio built with Three.js, React, and Tailwind CSS.
+# 3D Interactive Portfolio
 
-![Portfolio Preview](./preview.png)
+Hey, I'm Prasad Gaikwad. I'm a full-stack developer and hardware / IoT engineer based in Pune, India.
 
-## Core Capabilities & Architecture
+Most 3D developer portfolios out there follow the same pattern: they download a massive 40MB to 80MB GLTF model of a desk or computer, slap on bright purple neon gradients, and drop frames on anyone browsing on an average laptop or mobile phone.
 
-- **3D WebGL Interactive Workspace (`ThreeScene.tsx`)**:
-  - Procedural 3D scene running at a smooth 60+ FPS with zero heavy external 3D asset downloading bottlenecks.
-  - Interactive 3D **ESP32 Microcontroller Node** with copper traces, dual MCU Xtensa LX6 shield, gold pin headers, and blinking RX/TX LEDs.
-  - Interactive 3D **Holographic Terminal Screen** rendering a real-time procedural canvas with live oscilloscope waveforms, system metrics, and telemetry data.
-  - Orbiting 3D geometric skill polyhedra (Frontend, Backend, Hardware, Databases) that respond to cursor physics.
-  - Multi-camera director modes: `[Orbit View]`, `[ESP32 MCU Close-up]`, `[Terminal Console]`, and `[Skills 3D]`.
-  - Mouse parallax easing, click-to-focus raycasting, and Starfield cosmic particle cloud.
+I wanted to build something different. This is a full-screen, 60+ FPS interactive 3D universe that reflects what I actually work on: embedded hardware, microcontrollers (specifically the ESP32), sensor telemetry, and modern web platforms. Everything in the 3D scene is procedurally built with Three.js geometries and custom canvas-generated PBR textures, which means the whole bundle compiles to under 450 KB and loads instantly with zero model-download wait times.
 
-- **Embedded Hardware & IoT Lab (`IoTLab.tsx`)**:
-  - Interactive simulator demonstrating Prasad's real-world embedded systems engineering.
-  - **PIR Motion Sensor (HC-SR501)**: Click to simulate human motion, triggering GPIO 13 interrupts, alerting the active buzzer, and updating UART serial logs.
-  - **Ultrasonic Radar (HC-SR04)**: Interactive distance slider (5cm - 300cm) computing microsecond pulse widths and triggering proximity thresholds.
-  - **DHT22 Thermal Sensor**: Interactive temperature and humidity selector.
-  - **Photoresistor (LDR)**: 12-bit ADC raw value slider (0 - 4095).
-  - **Digital Oscilloscope & Logic Analyzer**: Real-time dual-channel canvas displaying clock signals and dynamic telemetry waveforms.
-  - **Live UART Serial Monitor**: 115200 baud streaming console output.
+No generic templates, no AI neon colors, and no bloated asset pipelines.
 
-- **Production & Prototype Showcase (`Projects.tsx` & `ProjectModal.tsx`)**:
-  - 3D interactive tilting cards with lighting reflection effects.
-  - Filterable by `[All]`, `[IoT & Hardware]`, `[Full-Stack]`, `[Mobile & Hybrid]`, `[Interactive Web]`.
-  - Detailed modal inspector featuring real project screenshots, hardware specifications, and live demo / source links:
-    - *Smart IoT Surveillance & Alert System (ESP32, C++, MicroPython, WebSockets, MQTT)*
-    - *FitTrack - Biological Fitness Companion (React, Firebase, Chart.js, Tailwind)*
-    - *Melodix - Offline-First Hybrid Audio Player (Capacitor, Android SDK, Zustand, IndexedDB)*
-    - *Chart Karo - Real-Time Collaborative Workspace (Node.js, Express, Socket.io, React)*
-    - *Sri Sri Associates - Real Estate Portfolio*
-    - *Muscle UP CAFE - Nutrition & Order Hub*
-    - *Terminal CLI Portfolio*
+---
 
-- **Interactive CLI Terminal (`TerminalModal.tsx`)**:
-  - Accessible via the Navbar, Hero button, or global keyboard shortcut (press `` ` `` backquote).
-  - Supports commands: `help`, `about`, `projects`, `hardware`, `skills`, `contact`, `matrix`, `clear`, `sudo`, `exit`.
+## What is Inside
 
-- **Web Audio API Soundscape Engine (`sound.ts`)**:
-  - Synthesizes procedural retro-futuristic audio (clicks, hovers, frequency chirps, success fanfares) directly in browser memory without external MP3 files.
-  - Global sound toggle with persistent preference in `localStorage`.
+The portfolio is structured along a continuous 3D coordinate spine with 6 spatial stations you can warp between using the mouse wheel, keyboard arrows, or the HUD navigation tabs:
 
-- **Authentic Engineering Aesthetic**:
-  - Built strictly adhering to authentic developer visual language (Obsidian dark, Matrix emerald `#10b981`, Hardware amber `#f59e0b`, Steel slate `#38bdf8`, and clean Fira Code monospace typography).
-  - Zero generic AI purple/magenta gradients and zero emojis.
+### 1. Station 00 // Nexus Developer Rig (`[0, 0, 0]`)
+My main workstation setup.
+- Curved ultrawide monitor displaying a live procedural oscilloscope waveform, active memory metrics, and real-time canvas readouts.
+- Unibody developer laptop with a rendered chiclet keyboard deck, trackpad, and angled display.
+- Desk details: custom 75% mechanical keyboard, wireless mouse, ceramic developer mug, and an edge-lit holographic avatar frame.
 
-## Quick Start
+### 2. Station 01 // Silicon Foundry (`[0, -25, 20]`)
+A CAD-level recreation of the ESP32-DEVKIT-V1 microcontroller board.
+- Dual-layer FR4 PCB with fiberglass weave, gold circuit traces, and silkscreen labels (`ESP32-DEVKIT-V1`, `XTENSA DUAL-CORE 240MHz`).
+- 30 individual gold-plated square header pins mounted on black plastic socket blocks.
+- Onboard hardware components: USB-C port with internal tongue, CP2102 USB-UART bridge, AMS1117 3.3V LDO regulator with copper heatsink tab, tactile `EN` and `BOOT` microswitches, and status LEDs.
+- Exploded ESP-WROOM-32 metal RF shield hovering above the board with authentic laser-etched markings, exposing the dual Xtensa LX6 silicon CPU dies and 40MHz quartz crystal oscillator underneath.
+- Three concentric holographic data rings rotating on independent orbital planes.
+
+### 3. Station 02 // Project Showroom Hangar (`[0, -50, 40]`)
+A panoramic curved gallery displaying my production web apps and IoT systems.
+- Heavy chamfered pedestals with glowing conduit rings and optical projector heads.
+- Beveled display monoliths with real screenshots, metal corner brackets, and floating category badges.
+- Click any monolith to open the Project Modal with high-res screenshots, architecture breakdowns, hardware pinouts, and live demo / GitHub links.
+
+### 4. Station 03 // IoT Electronics Workbench (`[0, -75, 60]`)
+A working virtual electronics bench connected to the UI.
+- Full 830-tie-point solderless breadboard with red/blue power buses, coordinate numbering, and center IC trough.
+- ESP32 module seated across the divider.
+- HC-SR04 Ultrasonic Distance Sensor: dual aluminum cylindrical transducer cans with acoustic mesh covers. Changing the distance slider in the HUD updates the 3D sonic pulse rings in real time.
+- HC-SR501 PIR Motion Sensor: faceted Fresnel lens dome and dual calibration trimmers. Clicking it simulates human movement, triggers the red laser cone, and flashes the alarm strobe.
+- 0.96" I2C OLED display showing live hardware telemetry text and mini waveforms.
+- Flexible curved 3D DuPont jumper wires (VCC red, GND black, signal yellow/blue) and color-banded carbon film resistors.
+
+### 5. Station 04 // Skill Constellation Galaxy (`[0, -100, 80]`)
+My technical skill set represented as orbiting dual-layer polyhedra.
+- Central emerald quantum reactor core.
+- 8 compound skill nodes: inner faceted core surrounded by a counter-rotating wireframe gyroscopic cage.
+- Covered areas: React 19, Three.js / WebGL, Node.js, ESP32 Firmware, TypeScript, WebSockets, MongoDB / PostgreSQL, and Embedded C / C++.
+
+### 6. Station 05 // Quantum Transmission Beacon (`[0, -125, 100]`)
+The contact station.
+- Industrial ground bunker with a parabolic communication dish and rear lattice truss support.
+- Tripod sub-reflector feedhorn assembly at the focal point.
+- Dual lateral photovoltaic solar wings with micro-conductor grids.
+- Alternating red aviation obstruction strobes.
+- High-energy focused particle beam that pulses rapidly whenever you send a message through the direct dispatch form.
+
+---
+
+## Additional Features
+
+- **Embedded Unix CLI Terminal**: Press `` ` `` (backtick) or click the terminal button in the HUD to launch an interactive terminal with custom command parsing (`help`, `about`, `projects`, `hardware`, `skills`, `contact`, `clear`, `matrix`, `sudo`, `exit`).
+- **Web Audio API Sound Engine**: Zero external MP3 files. All UI audio (subtle clicks, hover frequency sweeps, sensor alert pulses, and transmission chirps) is synthesized on the fly using native Web Audio oscillators and gain envelopes.
+- **Glassmorphic Sci-Fi HUD**: Clean overlay showing live 3D coordinates, station status, interactive sensor controls, audio toggle, and direct transmission form powered by EmailJS.
+- **Mouse Parallax & Raycasting**: Eased cursor tracking for natural camera depth, plus full 3D object hit detection for clicks and hovers.
+
+---
+
+## Tech Stack
+
+- **Framework**: React 19 + TypeScript
+- **3D Engine**: Three.js (`^0.187.0`)
+- **Styling**: Tailwind CSS v4
+- **Icons**: Custom SVG icons (`Icons.tsx`) & Lucide React
+- **Audio**: Web Audio API (procedural synthesizer)
+- **Email Service**: EmailJS
+- **Build Tool**: Vite 8
+
+---
+
+## Running Locally
+
+Clone the repository and install the dependencies:
 
 ```bash
+git clone https://github.com/GaikawadaPrasad/3D-Interactive-Portfolio.git
+cd 3D-Interactive-Portfolio
+
 # Install dependencies
 npm install
 
-# Start local development server
+# Start the local development server (runs on port 5173 / 5175)
 npm run dev
+```
 
-# Compile production build
+To build for production:
+
+```bash
 npm run build
-
-# Preview production build
 npm run preview
 ```
+
+---
+
+## Contact & Links
+
+- **Portfolio**: [Prasad Gaikwad Portfolio](https://github.com/GaikawadaPrasad)
+- **GitHub**: [@GaikawadaPrasad](https://github.com/GaikawadaPrasad)
+- **LinkedIn**: [Prasad Gaikwad](https://linkedin.com/in/prasad-gaikwad-dev)
+- **Location**: Pune, Maharashtra, India
